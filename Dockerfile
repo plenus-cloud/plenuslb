@@ -9,7 +9,7 @@ ENV GO111MODULE=on
 
 RUN go mod download
 
-RUN CGO_ENABLED=0 GOOS=linux go build -a -installsuffix cgo -o /app/main ./pkg/cmd/server/main.go
+RUN CGO_ENABLED=0 GOOS=linux go build -a -installsuffix cgo -o /app/main ./pkg/cmd/controller/main.go
 
 ## ca-certificates
 FROM alpine as certs
