@@ -1,0 +1,62 @@
+apiVersion: loadbalancing.plenus.io/v1alpha1
+kind: PersistentIPPool
+metadata:
+  name: hetzner-pers-pool-default
+spec:
+  allowedNamespaces:
+    - default
+  addresses:
+    - "22.33.44.55"
+    - "22.33.44.56"
+  cloudIntegration: 
+    hetzner:
+      token: <your_hetzner_api_token>
+  options:
+    hostNetworkInterface: 
+      addAddressesToInterface: true
+      interfaceName: <existing_interface_name>
+---
+apiVersion: loadbalancing.plenus.io/v1alpha1
+kind: PersistentIPPool
+metadata:
+  name: hetzner-pers-pool-all
+spec:
+  addresses:
+    - "22.33.44.57"
+    - "22.33.44.58"
+  cloudIntegration: 
+    hetzner:
+      token: <your_hetzner_api_token>
+  options:
+    hostNetworkInterface: 
+      addAddressesToInterface: true
+      interfaceName: <existing_interface_name>
+---
+apiVersion: loadbalancing.plenus.io/v1alpha1
+kind: EphemeralIPPool
+metadata:
+  name: hetzner-eph-pool-all
+spec:
+  cloudIntegration: 
+    hetzner:
+      token: <your_hetzner_api_token>
+  options:
+    hostNetworkInterface: 
+      addAddressesToInterface: true
+      interfaceName: <existing_interface_name>
+---
+apiVersion: loadbalancing.plenus.io/v1alpha1
+kind: EphemeralIPPool
+metadata:
+  name: hetzner-eph-pool-default
+spec:
+  allowedNamespaces:
+    - default
+    - something
+  cloudIntegration: 
+    hetzner:
+      token: <your_hetzner_api_token>
+  options:
+    hostNetworkInterface: 
+      addAddressesToInterface: true
+      interfaceName: <existing_interface_name>

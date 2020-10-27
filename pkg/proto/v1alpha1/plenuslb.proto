@@ -1,0 +1,35 @@
+syntax = "proto3";
+
+package plenuslbV1Alpha1;
+
+service PlenusLb {
+    rpc AddAddress(AddressInfo) returns (Result) {}
+    rpc RemoveAddress(AddressInfo) returns (Result) {}
+    rpc HealthProbe(Ping) returns (Pong) {}
+    rpc Cleanup(CleanupInfo) returns (Result) {}
+}
+
+message AddressInfo {
+    string address = 10;
+    string interface = 20;
+}
+
+message CleanupInfo {
+    repeated AddressInfo keepThese = 10;
+}
+
+message Result {
+    bool done = 10;
+    string message = 20;
+}
+
+message Ping {
+    string message = 10;
+}
+
+message Pong {
+    string message = 10;
+}
+
+message Empty {
+}
