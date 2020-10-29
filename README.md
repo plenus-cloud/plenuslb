@@ -16,8 +16,8 @@ PlenusLB has been originally developed to be used on the [Plenus cloud platform]
 PlenusLB works by taking ip addresses, defined in a IPPool custom resource, and assigning them to kubernetes services of type LoadBalancer.
 The allocation is managed with a IPAllocation custom resource; once assigned the ip the status of the service is updated, at this point Kubernetes will create the iptables/ipvs rules to route the ingress traffic to the service.
 
-PlenusLB also take care of:
-- if the ip pool declares a cloud provider, requesting an ip address to that cloud provider and, on the provider side, direct the routing to the server where the ip will be assigned
+PlenusLB also takes care of:
+- when the ip pool declares a cloud provider, requesting the ip address to that cloud provider and, on the provider side, direct the routing to the server where the ip will be assigned
 - choosing a cluster node to act as ingress node
 - assigning the ip address to a given network interface of the node, this way the node will accept traffic for the ip; usually the interface is an empty bridge.
 
@@ -26,13 +26,16 @@ PlenusLB also take care of:
 For the bare metal scenario it will be necessary to reserve a pool of ips for each cluster/PlenusLB, these ips will be put into a PersistentIPPool.
 
 All cluster nodes need to have an interface which can be used to assign ip addresses to.
-Since on that interface PlenusLB will remove all ip addresses during operator startup on each node: DO NOT use any interface where normal ips have been assigned to the node.
+Since on that interface PlenusLB will remove all ip addresses during operator startup on each node, *do not use* any interface where normal ips have been assigned to the node.
 We strongly suggest to use a dummy bridge specifically created for this purpose, for example pl0
 
 On Ubuntu/Debian nodes an empty (without physical interfaces) bridge pl0 can be created with the following commands:
 
 ```
-apt-get update && apt-get -q -y install bridge-utils bash && bash -c \"echo -e 'auto pl0\niface pl0 inet manual\n  bridge_ports none\n  bridge_stp off\n  bridge_fd 0\n  bridge_maxwait 0' > /etc/network/interfaces.d/90-bridge-pl0.cfg\" && /etc/init.d/networking restart
+apt-get update && \
+apt-get -q -y install bridge-utils bash && \
+bash -c \"echo -e 'auto pl0\niface pl0 inet manual\n  bridge_ports none\n  bridge_stp off\n  bridge_fd 0\n  bridge_maxwait 0' > /etc/network/interfaces.d/90-bridge-pl0.cfg\" && \
+/etc/init.d/networking restart
 ```
 
 The bridge will be persistent and will be restarted automatically after reboots, it is sufficient to give the commands once.
