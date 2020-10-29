@@ -1,5 +1,7 @@
 # PLENUSLB
 
+(img/logo.png "PlenusLB Logo")
+
 ## Description
 
 PlenusLB is a bare metal and cloud load balancer for Kubernetes clusters.
@@ -24,6 +26,12 @@ PlenusLB also takes care of:
 ## Prerequisites
 
 For the bare metal scenario it will be necessary to reserve a pool of ips for each cluster/PlenusLB, these ips will be put into a PersistentIPPool.
+
+### Hetzner
+
+To use PlenusLB with the Hetzner cloud provider you will need to have a project active on the cloud, create an API key in the "API TOKENS" sections of the interface and specify this token in the ip pools. The kubernetes cluster where PlenusLB is operating needs to be in the same Hetzner cloud project.
+
+### Dedicated bridge interface
 
 All cluster nodes need to have an interface which can be used to assign ip addresses to.
 Since on that interface PlenusLB will remove all ip addresses during operator startup on each node, **do not use** any interface where normal ips have been assigned to the node.
@@ -62,6 +70,8 @@ helm upgrade --install \
   --atomic --wait plenuslb plenus/plenuslb
 ```
 
+The same command can be used to upgrade PlenusLB.
+
 The value specified in the CLUSTER_NAME variable will be used as a part of the name given to the ephemeral ips created on a cloud provider.
 Set it to a value related to the cluster where PlenusLB is installed, so that the ips can be easily identified with the cluster.
 
@@ -69,7 +79,7 @@ Set it to a value related to the cluster where PlenusLB is installed, so that th
 
 By creating a service with type: LoadBalancer and not specifying any externalIPs PlenusLB will provision an ephemeral ip:
 the ip will be assigned to the service as long as the service exists, but there is no reservation; if the service is deleted the ip will be
-released on the cloud provider.
+released on the cloud provider. Ephemeral ips cannot be used in the bare metal scenario.
 
 To use ephemeral ips it is necessary to create an EphemeralIPPool:
 
@@ -87,6 +97,8 @@ spec:
       addAddressesToInterface: true
       interfaceName: pl0
 ```
+
+cloudIntegration declares the cloud provider where plenuslb will create the ips. At the moment only "hetzner" is supported, and accepts a single parameter "token" which must contain an Hetzner API key; the ips will be created in the project that the API keys are authorized for, this must be the same project where the kubernetes cluster has been created.
 
 To have an ephemeral ip assigned create a service with type: LoadBalancer and no externalIPs
 
