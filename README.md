@@ -1,6 +1,6 @@
 # PLENUSLB
 
-(img/logo.png "PlenusLB Logo")
+![PlenusLB Logo](img/logo.png "PlenusLB Logo")
 
 ## Description
 
