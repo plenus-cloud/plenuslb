@@ -26,8 +26,8 @@ PlenusLB also takes care of:
 For the bare metal scenario it will be necessary to reserve a pool of ips for each cluster/PlenusLB, these ips will be put into a PersistentIPPool.
 
 All cluster nodes need to have an interface which can be used to assign ip addresses to.
-Since on that interface PlenusLB will remove all ip addresses during operator startup on each node, *do not use* any interface where normal ips have been assigned to the node.
-We strongly suggest to use a dummy bridge specifically created for this purpose, for example pl0
+Since on that interface PlenusLB will remove all ip addresses during operator startup on each node, **do not use** any interface where normal ips have been assigned to the node.
+We strongly suggest to use a bridge specifically created for this purpose, for example pl0
 
 On Ubuntu/Debian nodes an empty (without physical interfaces) bridge pl0 can be created with the following commands:
 
@@ -56,7 +56,10 @@ Installation has been tested with helm 3.x and it is assumed a namespace plenusl
 ```yaml
 helm repo add plenus https://plenus-charts.storage.googleapis.com/stable/
 helm repo update
-helm upgrade --install --namespace=plenuslb --set envs.CLUSTER_NAME=mycluster --atomic --wait plenuslb plenus/plenuslb
+helm upgrade --install \
+  --namespace=plenuslb \
+  --set envs.CLUSTER_NAME=mycluster \
+  --atomic --wait plenuslb plenus/plenuslb
 ```
 
 The value specified in the CLUSTER_NAME variable will be used as a part of the name given to the ephemeral ips created on a cloud provider.
