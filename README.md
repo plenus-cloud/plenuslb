@@ -1,4 +1,4 @@
-# PLENUSLB
+# PlenusLB
 
 ![PlenusLB Logo](img/logo.png "PlenusLB Logo")
 
