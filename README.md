@@ -241,3 +241,7 @@ To build a specified tag:
 git checkout v0.3.4
 ./build.sh -v v0.3.4
 ```
+
+## Contributing
+
+We welcome contribution in any form. If you want to contribute to the code base, for example to add another cloud provider, you can fork the project and then submit a [pull request](https://docs.github.com/en/free-pro-team@latest/github/collaborating-with-issues-and-pull-requests/about-pull-requests) with your changes.
