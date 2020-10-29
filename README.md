@@ -108,7 +108,9 @@ spec:
 
 ```cloudIntegration``` declares the cloud provider where plenuslb will create the IP addresses. At the moment only ```hetzner``` is supported, and accepts a single parameter ```token``` which must contain an Hetzner API key; the IP addresses will be created in the project that the API keys are authorized for, this must be the same project where the kubernetes cluster has been created.
 
-```options.hostNetworkInterface.interfaceName``` must be set to the interface name where PlenusLB will assign IP addresses.
+```options.hostNetworkInterface.interfaceName``` must be set to the interface name where PlenusLB will assign IP addresses. Mandatory if ```addAddressesToInterface``` is true.
+
+```options.hostNetworkInterface.addAddressesToInterface``` usually is set to true, if set to false PlenusLB would not perform the assignment of the IP address to any interface on the ingress node; in that case the IP address would have to be assigned to the node manually or by another component.
 
 To have an ephemeral IP assigned create a service with type: LoadBalancer and no externalIPs
 
@@ -210,7 +212,6 @@ PlenusLB provides some degrees of multitenancy: if a cluster has multiple users,
 ### Allowed namespaces
 
 The following PersistentIPPool declares two IP addresses that can be requested only from services in the namespaces project1 and project2.
-
 
 ```yaml
 apiVersion: loadbalancing.plenus.io/v1alpha1
