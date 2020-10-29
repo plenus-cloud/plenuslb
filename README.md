@@ -23,6 +23,14 @@ PlenusLB also takes care of:
 - choosing a cluster node to act as ingress node
 - assigning the IP address to a given network interface of the node, this way the node will accept traffic for the IP; usually the interface is an empty bridge.
 
+## Architecture
+
+PlenusLB has two components:
+- the controller, one replica per cluster
+- the operators, one for each worker node of the Kubernetes cluster
+
+The controller will orchestrate all operations, while the operator will report node status to the controller, reconcile the node and assign/remove IP addresses as mandated by the controller.
+
 ## Prerequisites
 
 For the bare metal scenario it will be necessary to reserve a pool of IP addresses for each cluster/PlenusLB: the addresses must be declared in a PersistentIPPool.
@@ -74,6 +82,12 @@ The same command can be used to upgrade PlenusLB.
 
 The value specified in the CLUSTER_NAME variable will be used as a part of the name given to the ephemeral IP addresses created on a cloud provider.
 Set it to a value related to the cluster where PlenusLB is installed, so that the IP addresses can be easily identified with the cluster.
+
+## Docker images
+
+Docker images are published in the following repositories:
+- controller: https://hub.docker.com/repository/docker/plenus/plenuslb
+- operator: https://hub.docker.com/repository/docker/plenus/plenuslb-operator
 
 ## Types of IP pool
 
