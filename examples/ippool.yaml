@@ -6,15 +6,15 @@ spec:
   allowedNamespaces:
     - default
   addresses:
-    - "22.33.44.55"
-    - "22.33.44.56"
+    - "1.2.3.6"
+    - "1.2.3.7"
   cloudIntegration: 
     hetzner:
-      token: <your_hetzner_api_token>
+      token: YOUR_HETZNER_API_TOKEN
   options:
     hostNetworkInterface: 
       addAddressesToInterface: true
-      interfaceName: <existing_interface_name>
+      interfaceName: pl0
 ---
 apiVersion: loadbalancing.plenus.io/v1alpha1
 kind: PersistentIPPool
@@ -22,15 +22,15 @@ metadata:
   name: hetzner-pers-pool-all
 spec:
   addresses:
-    - "22.33.44.57"
-    - "22.33.44.58"
+    - "1.2.3.4"
+    - "1.2.3.5"
   cloudIntegration: 
     hetzner:
-      token: <your_hetzner_api_token>
+      token: YOUR_HETZNER_API_TOKEN
   options:
     hostNetworkInterface: 
       addAddressesToInterface: true
-      interfaceName: <existing_interface_name>
+      interfaceName: pl0
 ---
 apiVersion: loadbalancing.plenus.io/v1alpha1
 kind: EphemeralIPPool
@@ -39,11 +39,11 @@ metadata:
 spec:
   cloudIntegration: 
     hetzner:
-      token: <your_hetzner_api_token>
+      token: YOUR_HETZNER_API_TOKEN
   options:
     hostNetworkInterface: 
       addAddressesToInterface: true
-      interfaceName: <existing_interface_name>
+      interfaceName: pl0
 ---
 apiVersion: loadbalancing.plenus.io/v1alpha1
 kind: EphemeralIPPool
@@ -55,8 +55,8 @@ spec:
     - something
   cloudIntegration: 
     hetzner:
-      token: <your_hetzner_api_token>
+      token: YOUR_HETZNER_API_TOKEN
   options:
     hostNetworkInterface: 
       addAddressesToInterface: true
-      interfaceName: <existing_interface_name>
+      interfaceName: pl0
