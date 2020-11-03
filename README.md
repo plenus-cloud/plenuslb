@@ -41,7 +41,7 @@ For the bare metal scenario it will be necessary to reserve a pool of IP address
 
 To use PlenusLB with the Hetzner cloud provider you will need to have a project active on the cloud, create an API key in the "API TOKENS" sections of the interface and specify this token in the IP pools. The kubernetes cluster where PlenusLB is operating needs to be in the same Hetzner cloud project.
 
-At the moment PlenusLB will implement loadblancers using Hetzner Floating IPs, it will not use Hetzner Load Balancers.
+At the moment PlenusLB will implement load balancers using Hetzner Floating IPs, it will not use Hetzner Load Balancers.
 
 ### Dedicated bridge interface
 
@@ -99,7 +99,7 @@ PlenusLB supports two types of IP pools:
 - ephemeral IP pools, useful when the life cycle of the IP follows the life cycle of the service
 - persistent IP pools, targeted for all those cases where a static reservation of the IP is necessary
 
-At the moment it is not possibile to create an IP address with an ephemeral IP pool and then migrate it to a persistent IP pool.
+At the moment it is not possible to create an IP address with an ephemeral IP pool and then migrate it to a persistent IP pool.
 
 ### Ephemeral IP
 
@@ -175,7 +175,7 @@ Moreover at the moment it is the only type of IP supported in the bare metal sce
 
 The idea is that the pool of available IP addresses is preassigned:
 - in the bare metal scenario a pool of IP addresses is reserved for the kubernetes cluster
-- on a cloud provider the IP addresses will be manually acquired, for example on Hetzner you will have to buy the IP addresses in the project accesible to PlenusLB throught the given token
+- on a cloud provider the IP addresses will be manually acquired, for example on Hetzner you will have to buy the IP addresses in the project accessible to PlenusLB through the given token
 
 Then it is necessary to create a PersistentIPPool containing the addresses.
 
@@ -225,7 +225,7 @@ Where 1.2.3.4 is the IP that you want assigned to the service.
 
 ## Multitenancy
 
-PlenusLB provides some degrees of multitenancy: if a cluster has multiple users, each one of them confined to a set of namespaces, it it possibile to create IP pools reserved for specific namespaces. This, combined with the use of persistent IP pools, allows to allocate some IP addresses for specific users/projects.
+PlenusLB provides some degrees of multi tenancy: if a cluster has multiple users, each one of them confined to a set of namespaces, it it possible to create IP pools reserved for specific namespaces. This, combined with the use of persistent IP pools, allows to allocate some IP addresses for specific users/projects.
 
 ### Allowed namespaces
 
@@ -249,7 +249,7 @@ spec:
       interfaceName: pl0
 ```
 
-The same notation can be used with EphemeralIPPool. It could be useful when there are multiple projects on the same cluster and only some project must be allowed to request IP addresses from the cloud provider.
+The same notation can be used with EphemeralIPPool. It could be useful when there are multiple projects on the same cluster and only some projects must be allowed to request IP addresses from the cloud provider.
 
 ## Build
 
@@ -262,4 +262,4 @@ git checkout v0.3.4
 
 ## Contributing
 
-We welcome contribution in any form. If you want to contribute to the code base, for example to add another cloud provider, you can fork the project and then submit a [pull request](https://docs.github.com/en/free-pro-team@latest/github/collaborating-with-issues-and-pull-requests/about-pull-requests) with your changes.
+We welcome contributions in any form. If you want to contribute to the code base, for example to add another cloud provider, you can fork the project and then submit a [pull request](https://docs.github.com/en/free-pro-team@latest/github/collaborating-with-issues-and-pull-requests/about-pull-requests) with your changes.
