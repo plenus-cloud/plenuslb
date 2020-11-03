@@ -23,6 +23,8 @@ PlenusLB also takes care of:
 - choosing a cluster node to act as ingress node
 - assigning the IP address to a given network interface of the node, this way the node will accept traffic for the IP; usually the interface is an empty bridge.
 
+One of the design choices made was to use a dedicated bridge interface for publishing load balancer IP addresses on the nodes. This approach was chosen because it is agnostic towards the cloud provider, bare metal or virtual environments and requires no integration with routers, for BGP, or other network equipment.
+
 ## Architecture
 
 PlenusLB has two components:
@@ -38,6 +40,8 @@ For the bare metal scenario it will be necessary to reserve a pool of IP address
 ### Hetzner
 
 To use PlenusLB with the Hetzner cloud provider you will need to have a project active on the cloud, create an API key in the "API TOKENS" sections of the interface and specify this token in the IP pools. The kubernetes cluster where PlenusLB is operating needs to be in the same Hetzner cloud project.
+
+At the moment PlenusLB will implement loadblancers using Hetzner Floating IPs, it will not use Hetzner Load Balancers.
 
 ### Dedicated bridge interface
 
@@ -120,7 +124,7 @@ spec:
       interfaceName: pl0
 ```
 
-```cloudIntegration``` declares the cloud provider where plenuslb will create the IP addresses. At the moment only ```hetzner``` is supported, and accepts a single parameter ```token``` which must contain an Hetzner API key; the IP addresses will be created in the project that the API keys are authorized for, this must be the same project where the kubernetes cluster has been created.
+```cloudIntegration``` declares the cloud provider where PlenusLB will create the IP addresses. At the moment only ```hetzner``` is supported, and accepts a single parameter ```token``` which must contain an Hetzner API key; the IP addresses will be created in the project that the API keys are authorized for, this must be the same project where the kubernetes cluster has been created.
 
 ```options.hostNetworkInterface.interfaceName``` must be set to the interface name where PlenusLB will assign IP addresses. Mandatory if ```addAddressesToInterface``` is true.
 
