@@ -1,6 +1,6 @@
 # PlenusLB
 
-![PlenusLB Logo](img/logo.png "PlenusLB Logo")
+![PlenusLB Logo](https://github.com/plenus-cloud/plenuslb/raw/main/img/logo.png "PlenusLB Logo")
 
 ## Description
 
@@ -31,7 +31,19 @@ PlenusLB has two components:
 - the controller, one replica per cluster
 - the operators, one for each worker node of the Kubernetes cluster
 
-The controller will orchestrate all operations, while the operator will report node status to the controller, reconcile the node and assign/remove IP addresses as mandated by the controller.
+The controller orchestrates all operations by watching all resources (IP pools, allocations, load balancer services) and listening for kubernetes events in order to deal with error situations such as a node crash.
+When a node failure occurs, all allocations on that node are moved to a healthy node.
+The operators are intended to assign and remove IP addresses to and from the network interface of the node on which they are running, as required by the controller.
+
+If no pool has option
+
+```yaml
+  options:
+    hostNetworkInterface:
+      addAddressesToInterface: true
+```
+
+operators will not be deployed.
 
 ## Prerequisites
 
@@ -109,7 +121,7 @@ released on the cloud provider. Ephemeral IP addresses cannot be used in the bar
 
 To use ephemeral IP addresses it is necessary to create an EphemeralIPPool:
 
-```
+```yaml
 apiVersion: loadbalancing.plenus.io/v1alpha1
 kind: EphemeralIPPool
 metadata:
@@ -230,12 +242,13 @@ PlenusLB provides some degrees of multi tenancy: if a cluster has multiple users
 ### Allowed namespaces
 
 The following PersistentIPPool declares two IP addresses that can be requested only from services in the namespaces project1 and project2.
+The PersistentIPPool does not declare any cloudIntegration, so it is for bare metal environment.
 
 ```yaml
 apiVersion: loadbalancing.plenus.io/v1alpha1
 kind: PersistentIPPool
 metadata:
-  name: hetzner-persist-pool-reserved
+  name: baremetal-persist-pool-reserved
 spec:
   allowedNamespaces:
     - project1

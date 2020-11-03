@@ -1,0 +1,49 @@
+apiVersion: loadbalancing.plenus.io/v1alpha1
+kind: PersistentIPPool
+metadata:
+  name: hetzner-persist-pool-all
+spec:
+  addresses:
+    - "1.2.3.4"
+    - "1.2.3.5"
+  cloudIntegration:
+    hetzner:
+      token: YOUR_HETZNER_API_TOKEN
+  options:
+    hostNetworkInterface:
+      addAddressesToInterface: true
+      interfaceName: pl0
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: hello-kubernetes-persistent
+spec:
+  type: LoadBalancer
+  externalIPs:
+  - 1.2.3.4
+  ports:
+  - port: 80
+    targetPort: 8080
+  selector:
+    app: hello-kubernetes
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: hello-kubernetes
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: hello-kubernetes
+  template:
+    metadata:
+      labels:
+        app: hello-kubernetes
+    spec:
+      containers:
+      - name: hello-kubernetes
+        image: paulbouwer/hello-kubernetes:1.8
+        ports:
+        - containerPort: 8080

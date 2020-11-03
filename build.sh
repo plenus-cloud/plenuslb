@@ -7,7 +7,9 @@ PUSH=false
 CONTROLLER_ONLY=false
 OPERATOR_ONLY=false
 
-source ./.envs.sh
+#source ./.envs.sh
+OPERATOR_REPO=plenus/plenuslb-operator
+CONTROLLER_REPO=plenus/plenuslb-controller
 
 usage() {
     echo "usage: ./build.sh [[[-v version ] [-p push]] | [-h]]"

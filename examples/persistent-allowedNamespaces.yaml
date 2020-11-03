@@ -1,0 +1,15 @@
+apiVersion: loadbalancing.plenus.io/v1alpha1
+kind: PersistentIPPool
+metadata:
+  name: baremetal-persist-pool-reserved
+spec:
+  allowedNamespaces:
+    - project1
+    - project2
+  addresses:
+    - "1.2.3.6"
+    - "1.2.3.7"
+  options:
+    hostNetworkInterface:
+      addAddressesToInterface: true
+      interfaceName: pl0

@@ -1,4 +1,4 @@
 #!/bin/bash
 
-export CONTROLLER_IMAGE_REPO="plenuslb"
-export OPERATOR_IMAGE_REPO="plenuslb-operator"
+export CONTROLLER_IMAGE_REPO="plenus/plenuslb"
+export OPERATOR_IMAGE_REPO="plenus/plenuslb-operator"

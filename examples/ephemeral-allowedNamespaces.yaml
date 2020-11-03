@@ -1,0 +1,15 @@
+apiVersion: loadbalancing.plenus.io/v1alpha1
+kind: EphemeralIPPool
+metadata:
+  name: hetzner-eph-pool-default
+spec:
+  allowedNamespaces:
+    - default
+    - something
+  cloudIntegration: 
+    hetzner:
+      token: YOUR_HETZNER_API_TOKEN
+  options:
+    hostNetworkInterface: 
+      addAddressesToInterface: true
+      interfaceName: pl0
