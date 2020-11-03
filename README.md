@@ -269,8 +269,8 @@ The same notation can be used with EphemeralIPPool. It could be useful when ther
 To build a specified tag:
 
 ```
-git checkout v0.3.4
-./build.sh -v v0.3.4
+git checkout v0.3.5
+./build.sh -v v0.3.5
 ```
 
 ## Contributing
