@@ -21,11 +21,10 @@ import (
 	
 	"github.com/vishvananda/netlink"
 
-	"google.golang.org/grpc/codes"
-	"google.golang.org/grpc/status"
 	"k8s.io/klog"
 
 	"plenus.io/plenuslb/pkg/operator/network"
+	"plenus.io/plenuslb/pkg/operator/utils"
 	plenuslbV1Alpha1 "plenus.io/plenuslb/pkg/proto/v1alpha1/generated"
 )
 
@@ -36,11 +35,9 @@ var addressesLock = &sync.Mutex{}
 
 // do observer business
 // subscribe to addresses update and watch them 
-func Run() {
+func Run(doneAddrUpdate chan struct{}) {
 	// subscribe to ip addresses update
 	chAddrUpdate := make(chan netlink.AddrUpdate)
-	doneAddrUpdate := make(chan struct{})
-	defer close(doneAddrUpdate)
 	err := subscribeAddrUpdate(chAddrUpdate, doneAddrUpdate)
 	if err != nil {
 		klog.Fatalf("Fatal error received during AddrSubscribe subscription: %v", err)
@@ -54,27 +51,14 @@ func Run() {
 func AddAddress(info *plenuslbV1Alpha1.AddressInfo) error {
 	addressesLock.Lock()
 	defer addressesLock.Unlock()
-	// save address list in case of failure
-	previousAddressesList := assignedAddressesList
-	// add address from the list of managed addresses 
-	addressFound := false
-	for _, currentAddress := range assignedAddressesList {
-		if currentAddress.GetAddress() == info.GetAddress() {
-			addressFound = true
-			break
-		}
+	err := network.AddAddress(info.GetInterface(), info.GetAddress())
+	if err != nil {
+		return err
 	}
-	if (! addressFound) {
+	if (!utils.ContainsAddressInfo(assignedAddressesList, info.GetInterface(), info.GetAddress())) {
 		// add address to assignedAddressesList
 		assignedAddressesList = append(assignedAddressesList, info)
 	}
-	
-	err := network.AddAddress(info.GetInterface(), info.GetAddress())
-	if err != nil {
-		assignedAddressesList = previousAddressesList
-		return status.Error(codes.Internal, err.Error())
-	}
-	
 	return nil
 }
 
@@ -82,24 +66,19 @@ func AddAddress(info *plenuslbV1Alpha1.AddressInfo) error {
 func RemoveAddress(info *plenuslbV1Alpha1.AddressInfo) error {
 	addressesLock.Lock()
 	defer addressesLock.Unlock()
-	// save address list in case of failure
-	previousAddressesList := assignedAddressesList
+	err := network.DeleteAddress(info.GetInterface(), info.GetAddress())
+	if err != nil {
+		return err
+	}
+
 	// remove address from the list of managed addresses 
 	newAddressList := []*plenuslbV1Alpha1.AddressInfo{}
 	for _, currentAddress := range assignedAddressesList {
-		if currentAddress.GetAddress() != info.GetAddress() {
+		if (currentAddress.GetAddress() != info.GetAddress() || currentAddress.GetInterface() != info.GetInterface()) {
 			newAddressList = append(newAddressList, currentAddress)
 		}
 	}
-	if len(newAddressList) != len(assignedAddressesList) {
-		assignedAddressesList = newAddressList
-	}
-	
-	err := network.DeleteAddress(info.GetInterface(), info.GetAddress())
-	if err != nil {
-		assignedAddressesList = previousAddressesList
-		return status.Error(codes.Internal, err.Error())
-	}
+	assignedAddressesList = newAddressList
 	
 	return nil
 }
@@ -108,29 +87,22 @@ func RemoveAddress(info *plenuslbV1Alpha1.AddressInfo) error {
 func Cleanup(keepThese []*plenuslbV1Alpha1.AddressInfo) error {
 	addressesLock.Lock()
 	defer addressesLock.Unlock()
-	var actionErr error
 
-	// save address list in case of failure
-	previousAddressesList := assignedAddressesList
-	assignedAddressesList = []*plenuslbV1Alpha1.AddressInfo{}
-	for _, info := range keepThese {
-		assignedAddressesList = append(assignedAddressesList, info)
-	}
-	
-	actionErr = network.Cleanup(keepThese)
+	// apply network.Cleanup
+	if err := network.Cleanup(keepThese); err != nil {
+		return err
+    }
 
+	// restore missing addresses
 	for _, info := range keepThese {
 		err := network.AddAddress(info.GetInterface(), info.GetAddress())
 		if err != nil {
-			actionErr = err
+			return err
 		}
 	}
-
-	if actionErr != nil {
-		assignedAddressesList = previousAddressesList
-		return status.Error(codes.Internal, actionErr.Error())
-	}
-
+	
+	// if succeed update assignedAddressesList
+	assignedAddressesList = keepThese
 	return nil
 }
 
@@ -141,14 +113,11 @@ func Cleanup(keepThese []*plenuslbV1Alpha1.AddressInfo) error {
 // this avoid losing the ip due to some external event
 // ex. the system updating package systemd on ubuntu distro
 func watchAddrUpdate(chAddrUpdate chan netlink.AddrUpdate) {
-	for {
-		select {
-		case _ = <-chAddrUpdate:
-			// process the address update
-			// wihich address has been updated is not important
-			// we will search for "lost" addresses whatever
-			processAddressUpdate()
-		}
+	for _ = range chAddrUpdate {
+		// process the address update
+		// wihich address has been updated is not important
+		// we will search for "lost" addresses whatever
+		processAddressUpdate()
 	}
 }
 
@@ -166,31 +135,20 @@ func processAddressUpdate() {
 	chanProcessAddressUpdate := make(chan error, 1)
 	go func() {
 		for _, currentAddress := range assignedAddressesList {
-			// verify if address is assigned to interface
-			// get interface
-			link, err := netlink.LinkByName(currentAddress.GetInterface())
+			addressFound, err := network.IsAddressOnInterface(currentAddress)
 			if err != nil {
 				klog.Error(err)
 				continue
 			}
-			// get all addresses on interface
-			realAddressList, err := netlink.AddrList(link, 0)
-			if err != nil {
-				klog.Error(err)
-				continue
-			}
-			// compare addresses on interface with currentAddress
-			addressFound := false
-			for _, address := range realAddressList {
-				if (currentAddress.GetInterface() == link.Attrs().Name && currentAddress.GetAddress() == address.IP.String()) {
-					addressFound = true
-					break
-				}
-			}
+			 
 			// if address wasn't found add it to interface
 			if (! addressFound) {
 				klog.Infof("Found missing address %s on interface %s", currentAddress.GetAddress(), currentAddress.GetInterface())
-				network.AddAddress(currentAddress.GetInterface(), currentAddress.GetAddress())
+				err = network.AddAddress(currentAddress.GetInterface(), currentAddress.GetAddress())
+				if err != nil {
+					klog.Errorf("Failed to restore missing address %s on interface %s", currentAddress.GetAddress(), currentAddress.GetInterface())
+					continue
+				}
 			}
 		}
 

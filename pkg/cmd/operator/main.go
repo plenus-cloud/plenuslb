@@ -53,8 +53,10 @@ func main() {
 		k8shealth.IsReady = true
 	}()
 
+	doneAddrUpdate := make(chan struct{})
+	defer close(doneAddrUpdate)
 	// subscribe to addresses update and watch them 
-	observer.Run()
+	observer.Run(doneAddrUpdate)
 
 	err = grpcServer.Serve(lis)
 	if err != nil {

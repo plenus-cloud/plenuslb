@@ -124,3 +124,25 @@ func getInterfaceByName(netInterfaceName string) (netlink.Link, error) {
 	klog.Infof("Successfully got interface %s", netInterfaceName)
 	return netInterface, nil
 }
+
+func IsAddressOnInterface(addressToBeChecked *plenuslbV1Alpha1.AddressInfo) (bool, error) {
+	// verify if address is assigned to interface
+	// get interface
+	link, err := getInterfaceByName(addressToBeChecked.GetInterface())
+	if err != nil {
+		return false, err
+	}
+	// get all addresses on interface
+	realAddressList, err := netlink.AddrList(link, 0)
+	if err != nil {
+		return false, err
+	}
+	// compare addresses on interface with currentAddress
+	// there is no need to compare interface name as we have already got only the addresses on that interface
+	for _, address := range realAddressList {
+		if (addressToBeChecked.GetAddress() == address.IP.String()) {
+			return true, nil
+		}
+	}
+	return false, nil
+}
