@@ -23,7 +23,7 @@ import (
 	"google.golang.org/grpc/status"
 	"k8s.io/klog"
 
-	"plenus.io/plenuslb/pkg/operator/network"
+	"plenus.io/plenuslb/pkg/operator/observer"
 	plenuslbV1Alpha1 "plenus.io/plenuslb/pkg/proto/v1alpha1/generated"
 )
 
@@ -55,7 +55,7 @@ func (s *PlenusLbServer) HealthProbe(ctx context.Context, ping *plenuslbV1Alpha1
 func (s *PlenusLbServer) AddAddress(ctx context.Context, info *plenuslbV1Alpha1.AddressInfo) (*plenuslbV1Alpha1.Result, error) {
 	klog.Infof("Received request to add address %s to interface %s", info.GetAddress(), info.GetInterface())
 
-	err := network.AddAddress(info.GetInterface(), info.GetAddress())
+	err := observer.AddAddress(info)
 	if err != nil {
 		return nil, status.Error(codes.Internal, err.Error())
 	}
@@ -71,7 +71,7 @@ func (s *PlenusLbServer) AddAddress(ctx context.Context, info *plenuslbV1Alpha1.
 func (s *PlenusLbServer) RemoveAddress(ctx context.Context, info *plenuslbV1Alpha1.AddressInfo) (*plenuslbV1Alpha1.Result, error) {
 	klog.Infof("Received request to remove address %s from interface %s", info.GetAddress(), info.GetInterface())
 
-	err := network.DeleteAddress(info.GetInterface(), info.GetAddress())
+	err := observer.RemoveAddress(info)
 	if err != nil {
 		return nil, status.Error(codes.Internal, err.Error())
 	}
@@ -83,24 +83,15 @@ func (s *PlenusLbServer) RemoveAddress(ctx context.Context, info *plenuslbV1Alph
 	}, nil
 }
 
-// Cleanup reoved all addresses managed by plenuslb from all interfaces
+// Cleanup removes all addresses managed by plenuslb from all interfaces
 func (s *PlenusLbServer) Cleanup(ctx context.Context, cleanupInfo *plenuslbV1Alpha1.CleanupInfo) (*plenuslbV1Alpha1.Result, error) {
 	toKeep := cleanupInfo.GetKeepThese()
 	klog.Infof("Received request to cleanup all addresses managed by plenuslb, except %d", len(toKeep))
 
-	var actionErr error
+	err := observer.Cleanup(toKeep)
 
-	actionErr = network.Cleanup(toKeep)
-
-	for _, info := range toKeep {
-		err := network.AddAddress(info.GetInterface(), info.GetAddress())
-		if err != nil {
-			actionErr = err
-		}
-	}
-
-	if actionErr != nil {
-		return nil, status.Error(codes.Internal, actionErr.Error())
+	if err != nil {
+		return nil, status.Error(codes.Internal, err.Error())
 	}
 
 	m := fmt.Sprintf("Cleanup completed")

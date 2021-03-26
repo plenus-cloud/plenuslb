@@ -25,6 +25,7 @@ import (
 	"google.golang.org/grpc"
 	"k8s.io/klog"
 	"plenus.io/plenuslb/pkg/operator/server"
+	"plenus.io/plenuslb/pkg/operator/observer"
 	plenuslbV1Alpha1 "plenus.io/plenuslb/pkg/proto/v1alpha1/generated"
 	"plenus.io/plenuslb/pkg/utils/k8shealth"
 )
@@ -51,6 +52,9 @@ func main() {
 		time.Sleep(2 * time.Second)
 		k8shealth.IsReady = true
 	}()
+
+	// subscribe to addresses update and watch them 
+	observer.Run()
 
 	err = grpcServer.Serve(lis)
 	if err != nil {
