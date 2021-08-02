@@ -15,6 +15,7 @@ limitations under the License.
 package operator
 
 import (
+	"fmt"
 	"os"
 	"reflect"
 	"sync"
@@ -254,8 +255,7 @@ func getDaemonsetSetDefinition() *appsv1.DaemonSet {
 		}}
 	}
 	privileged := true
-	var tolerationSeconds int64
-	tolerationSeconds = 2
+	tolerationSeconds := int64(2)
 	healthPort := utils.HealthPort()
 	return &appsv1.DaemonSet{
 		ObjectMeta: metav1.ObjectMeta{
@@ -343,6 +343,10 @@ func getDaemonsetSetDefinition() *appsv1.DaemonSet {
 											FieldPath: "spec.nodeName",
 										},
 									},
+								},
+								{
+									Name:  "HEALTH_PORT",
+									Value: fmt.Sprintf("%d", healthPort),
 								},
 							},
 							Resources: v1.ResourceRequirements{
