@@ -256,6 +256,7 @@ func getDaemonsetSetDefinition() *appsv1.DaemonSet {
 	privileged := true
 	var tolerationSeconds int64
 	tolerationSeconds = 2
+	healthPort := utils.HealthPort()
 	return &appsv1.DaemonSet{
 		ObjectMeta: metav1.ObjectMeta{
 			Name:      operatorName,
@@ -298,7 +299,7 @@ func getDaemonsetSetDefinition() *appsv1.DaemonSet {
 								{
 									Name:          "health",
 									Protocol:      v1.ProtocolTCP,
-									ContainerPort: 8080,
+									ContainerPort: healthPort,
 								},
 								{
 									Name:          "grpc",

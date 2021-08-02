@@ -15,9 +15,11 @@ limitations under the License.
 package k8shealth
 
 import (
+	"fmt"
 	"net/http"
 
 	"k8s.io/klog"
+	"plenus.io/plenuslb/pkg/controller/utils"
 )
 
 // IsReady set the ready probe as ready or not
@@ -50,7 +52,8 @@ func HealthHandlers() {
 		}
 	})
 
-	klog.V(4).Info("k8s probes listenig on port 8080")
+	port := fmt.Sprintf(":%d", utils.HealthPort())
+	klog.V(4).Infof("k8s probes listenig on port %s", port)
 	// start an http server using the mux server
-	klog.Fatal(http.ListenAndServe(":8080", server))
+	klog.Fatal(http.ListenAndServe(port, server))
 }

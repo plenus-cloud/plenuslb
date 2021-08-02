@@ -16,11 +16,13 @@ package utils
 
 import (
 	"os"
+	"strconv"
 	"time"
 
 	"github.com/Pallinder/go-randomdata"
 	v1 "k8s.io/api/core/v1"
 	"k8s.io/apimachinery/pkg/util/wait"
+	"k8s.io/klog"
 	loadbalancing_v1alpha1 "plenus.io/plenuslb/pkg/apis/loadbalancing/v1alpha1"
 )
 
@@ -207,4 +209,15 @@ var ErrorBackoff = ForeverBackoff{
 	Factor:   1.2,
 	Jitter:   0.2,
 	Cap:      5 * time.Minute,
+}
+
+func HealthPort() int32 {
+	if customPort := os.Getenv("HEALTH_PORT"); customPort != "" {
+		i64, err := strconv.ParseInt(customPort, 10, 32)
+		if err != nil {
+			klog.Fatal(err)
+		}
+		return int32(i64)
+	}
+	return 8080
 }
