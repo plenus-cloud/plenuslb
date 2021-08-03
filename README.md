@@ -268,7 +268,10 @@ The same notation can be used with EphemeralIPPool. It could be useful when ther
 
 The controller deployment and the operator daemonset use a health check port; the default value for this port is 8080.
 
-Since the operator
+Since the operator use hostNetwork: true it needs this port on the nodes for exclusive use. In some rare cases there can be other pods using hostNetwork that need this port.
+For example Ceph CSI driver https://github.com/ceph/ceph-csi
+
+The port is configurable with the HEALTH_PORT env variable in the controller. The controller will propagate it to the operator daemonset.
 
 ## Build
 
