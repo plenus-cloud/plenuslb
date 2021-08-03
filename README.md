@@ -264,6 +264,12 @@ spec:
 
 The same notation can be used with EphemeralIPPool. It could be useful when there are multiple projects on the same cluster and only some projects must be allowed to request IP addresses from the cloud provider.
 
+## Health check port
+
+The controller deployment and the operator daemonset use a health check port; the default value for this port is 8080.
+
+Since the operator
+
 ## Build
 
 To build a specified tag:
