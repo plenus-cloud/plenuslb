@@ -3,9 +3,15 @@
 
 all-bin: build-controller build-operator
 
+lint-install:
+	@echo "  >  Installing code linter"
+	@wget -O- -nv https://raw.githubusercontent.com/golangci/golangci-lint/master/install.sh | sh -s -- -b $(shell go env GOPATH)/bin v1.42.1
+
 lint:
 	@echo "  >  Linting code"
-	@golint `go list ./pkg/...`
+	@golangci-lint --version
+	@golangci-lint cache clean
+	@golangci-lint -v run
 
 test-code: ## runs the code test
 	@echo "  >  Generating code"

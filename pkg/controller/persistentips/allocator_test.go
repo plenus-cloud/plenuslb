@@ -121,18 +121,13 @@ var (
 )
 
 func buildPoolsMock() {
-	for _, ip := range poolWithCloudAddresses {
-		poolWithCloud.Spec.Addresses = append(poolWithCloud.Spec.Addresses, ip)
-	}
-	for _, ip := range poolWithoutCloudAddresses {
-		poolWithoutCloud.Spec.Addresses = append(poolWithoutCloud.Spec.Addresses, ip)
-	}
-	for _, ip := range poolWithoutHostAddresses {
-		poolWithoutHost.Spec.Addresses = append(poolWithoutHost.Spec.Addresses, ip)
-	}
-	for _, ip := range poolWithoutCloudAndHostAddresses {
-		poolWithoutCloudAndHost.Spec.Addresses = append(poolWithoutCloudAndHost.Spec.Addresses, ip)
-	}
+	poolWithCloud.Spec.Addresses = append(poolWithCloud.Spec.Addresses, poolWithCloudAddresses...)
+
+	poolWithoutCloud.Spec.Addresses = append(poolWithoutCloud.Spec.Addresses, poolWithoutCloudAddresses...)
+
+	poolWithoutHost.Spec.Addresses = append(poolWithoutHost.Spec.Addresses, poolWithoutHostAddresses...)
+
+	poolWithoutCloudAndHost.Spec.Addresses = append(poolWithoutCloudAndHost.Spec.Addresses, poolWithoutCloudAndHostAddresses...)
 
 	mockPersistentPoolCache(&poolWithCloud, &poolWithoutCloud, &poolWithoutHost, &poolWithoutCloudAndHost)
 }
@@ -163,7 +158,7 @@ func mockCoreClientCache(pods ...*v1.Pod) {
 	newStore := cache.NewStore(testStoreKeyFunc)
 
 	for _, pod := range pods {
-		newStore.Add(pod)
+		_ = newStore.Add(pod)
 	}
 	operator.GetStoreList = func() []interface{} {
 		return newStore.List()
@@ -177,7 +172,7 @@ func mockPersistentPoolCache(pools ...*loadbalancing_v1alpha1.PersistentIPPool) 
 	newStore := cache.NewStore(testStoreKeyFunc)
 
 	for _, pool := range pools {
-		newStore.Add(pool)
+		_ = newStore.Add(pool)
 	}
 	poolStoreList = func() []interface{} {
 		return newStore.List()

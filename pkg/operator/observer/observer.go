@@ -18,7 +18,7 @@ import (
 	"context"
 	"sync"
 	"time"
-	
+
 	"github.com/vishvananda/netlink"
 
 	"k8s.io/klog"
@@ -30,11 +30,12 @@ import (
 
 // this is the list of all ip assigned to the operator
 var assignedAddressesList = []*plenuslbV1Alpha1.AddressInfo{}
+
 // mutex for address manipulation
 var addressesLock = &sync.Mutex{}
 
 // do observer business
-// subscribe to addresses update and watch them 
+// subscribe to addresses update and watch them
 func Run(doneAddrUpdate chan struct{}) {
 	// subscribe to ip addresses update
 	chAddrUpdate := make(chan netlink.AddrUpdate)
@@ -55,7 +56,7 @@ func AddAddress(info *plenuslbV1Alpha1.AddressInfo) error {
 	if err != nil {
 		return err
 	}
-	if (!utils.ContainsAddressInfo(assignedAddressesList, info.GetInterface(), info.GetAddress())) {
+	if !utils.ContainsAddressInfo(assignedAddressesList, info.GetInterface(), info.GetAddress()) {
 		// add address to assignedAddressesList
 		assignedAddressesList = append(assignedAddressesList, info)
 	}
@@ -71,15 +72,15 @@ func RemoveAddress(info *plenuslbV1Alpha1.AddressInfo) error {
 		return err
 	}
 
-	// remove address from the list of managed addresses 
+	// remove address from the list of managed addresses
 	newAddressList := []*plenuslbV1Alpha1.AddressInfo{}
 	for _, currentAddress := range assignedAddressesList {
-		if (currentAddress.GetAddress() != info.GetAddress() || currentAddress.GetInterface() != info.GetInterface()) {
+		if currentAddress.GetAddress() != info.GetAddress() || currentAddress.GetInterface() != info.GetInterface() {
 			newAddressList = append(newAddressList, currentAddress)
 		}
 	}
 	assignedAddressesList = newAddressList
-	
+
 	return nil
 }
 
@@ -91,7 +92,7 @@ func Cleanup(keepThese []*plenuslbV1Alpha1.AddressInfo) error {
 	// apply network.Cleanup
 	if err := network.Cleanup(keepThese); err != nil {
 		return err
-    }
+	}
 
 	// restore missing addresses
 	for _, info := range keepThese {
@@ -100,7 +101,7 @@ func Cleanup(keepThese []*plenuslbV1Alpha1.AddressInfo) error {
 			return err
 		}
 	}
-	
+
 	// if succeed update assignedAddressesList
 	assignedAddressesList = keepThese
 	return nil
@@ -113,7 +114,7 @@ func Cleanup(keepThese []*plenuslbV1Alpha1.AddressInfo) error {
 // this avoid losing the ip due to some external event
 // ex. the system updating package systemd on ubuntu distro
 func watchAddrUpdate(chAddrUpdate chan netlink.AddrUpdate) {
-	for _ = range chAddrUpdate {
+	for range chAddrUpdate {
 		// process the address update
 		// wihich address has been updated is not important
 		// we will search for "lost" addresses whatever
@@ -123,14 +124,15 @@ func watchAddrUpdate(chAddrUpdate chan netlink.AddrUpdate) {
 
 // process the address update
 // cycle on assignedAddressesList and
-// search for addresses that are not assigned to the required interface 
+// search for addresses that are not assigned to the required interface
 func processAddressUpdate() {
 	addressesLock.Lock()
 	defer addressesLock.Unlock()
 
 	// the lock inside this function could block the functions called by grpc
 	// if we cannot terminate within 5 seconds we will terminate the process
-	ctx, _ := context.WithTimeout(context.Background(), 5*time.Second)
+	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
+	defer cancel()
 
 	chanProcessAddressUpdate := make(chan error, 1)
 	go func() {
@@ -140,9 +142,9 @@ func processAddressUpdate() {
 				klog.Error(err)
 				continue
 			}
-			 
+
 			// if address wasn't found add it to interface
-			if (! addressFound) {
+			if !addressFound {
 				klog.Infof("Found missing address %s on interface %s", currentAddress.GetAddress(), currentAddress.GetInterface())
 				err = network.AddAddress(currentAddress.GetInterface(), currentAddress.GetAddress())
 				if err != nil {
@@ -156,13 +158,13 @@ func processAddressUpdate() {
 	}()
 
 	select {
-		case <-ctx.Done():
-			klog.Infof("Timeout in processAddressUpdate")
-			// log a fatal error and terminate
-			// we were not able to process the message and restore correct addresses within deadline
-			// by killing the operator we notify the controller that things went wrong in a bad way  
-			klog.Fatal(ctx.Err())
-		case <-chanProcessAddressUpdate:
+	case <-ctx.Done():
+		klog.Infof("Timeout in processAddressUpdate")
+		// log a fatal error and terminate
+		// we were not able to process the message and restore correct addresses within deadline
+		// by killing the operator we notify the controller that things went wrong in a bad way
+		klog.Fatal(ctx.Err())
+	case <-chanProcessAddressUpdate:
 	}
 }
 

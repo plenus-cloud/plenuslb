@@ -17,7 +17,6 @@ package allocationslock
 import (
 	"fmt"
 	"reflect"
-	"sync"
 	"testing"
 	"time"
 
@@ -34,10 +33,6 @@ func mockDefaultObjectBackoff() {
 		Factor:   2.0,
 		Jitter:   0.1,
 	}
-}
-
-func resetLock() {
-	lockedObjects = sync.Map{}
 }
 
 func TestAcquireAllocationLock(t *testing.T) {

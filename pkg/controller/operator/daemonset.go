@@ -117,7 +117,7 @@ func DeployOrDie() error {
 		WhatchControllerNodes()
 	} else {
 		deployed = false
-		Delete()
+		_ = Delete()
 		klog.Error("Something went wrong creating resources for daemonset")
 		klog.Fatal(err)
 	}
@@ -214,7 +214,10 @@ func warmupControllerNodesCacheOrDie(daemonset *appsv1.DaemonSet) error {
 	for _, pod := range list {
 		if utils.IsPodReady(&pod) {
 			klog.Infof("Operator node %s is running on cluster node %s", pod.GetName(), pod.Spec.NodeName)
-			operatorNodesStore.Add(pod)
+			if err := operatorNodesStore.Add(pod); err != nil {
+				klog.Error(err)
+				return err
+			}
 		} else {
 			klog.Warningf("Operator node %s is not ready, is %s for the following reason: %s", pod.GetName(), pod.Status.Phase, pod.Status.Reason)
 		}
@@ -482,5 +485,3 @@ func mergeOperatorsDefinitions(oldOperator *appsv1.DaemonSet) *appsv1.DaemonSet 
 var GetStoreList = func() []interface{} {
 	return operatorNodesStore.List()
 }
-
-func int32Ptr(i int32) *int32 { return &i }

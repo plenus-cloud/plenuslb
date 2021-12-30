@@ -161,7 +161,7 @@ func buildAllocations(serviceNamespace string, actualAllocationRO *loadbalancing
 			pool = GetPoolOfAddress(serviceNamespace, ready.Address)
 			allocation = ready.DeepCopy()
 			if pool == nil {
-				allocationErr := fmt.Errorf("Pool for address %s of allocation %s/%s not found", ready.Address, actualAllocationRO.GetNamespace(), actualAllocationRO.GetName())
+				allocationErr := fmt.Errorf("pool for address %s of allocation %s/%s not found", ready.Address, actualAllocationRO.GetNamespace(), actualAllocationRO.GetName())
 				klog.Error(allocationErr)
 			}
 		} else {
@@ -391,7 +391,7 @@ func DeallocateAllocation(allocation *loadbalancing_v1alpha1.IPAllocation) {
 	for _, addrAllocation := range allocation.Spec.Allocations {
 		if addrAllocation.NetworkInterface != "" {
 			netInterface := addrAllocation.NetworkInterface
-			operatorspeaker.RemoveAddressFromNode(addrAllocation.NodeName, netInterface, addrAllocation.Address)
+			_ = operatorspeaker.RemoveAddressFromNode(addrAllocation.NodeName, netInterface, addrAllocation.Address)
 		}
 
 		klog.Infof("Releasing address %s to pool %s", addrAllocation.Address, addrAllocation.Pool)

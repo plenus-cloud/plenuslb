@@ -96,7 +96,7 @@ func CheckAndPatchAllocation(allocationRO *loadbalancing_v1alpha1.IPAllocation) 
 	// if ip not valid set error
 	addr := net.ParseIP(addressAllocation.Address)
 	if addr == nil {
-		allocationErr = fmt.Errorf("Address '%s' of allocation %s/%s is not valid", addressAllocation.Address, allocationRO.GetNamespace(), allocationRO.GetName())
+		allocationErr = fmt.Errorf("address '%s' of allocation %s/%s is not valid", addressAllocation.Address, allocationRO.GetNamespace(), allocationRO.GetName())
 		if addressAllocation.NodeName != "" {
 			klog.Info(allocationErr)
 			klog.Infof("Getting new ephemeral address for allocation %s/%s", allocationRO.GetNamespace(), allocationRO.GetName())
@@ -335,7 +335,7 @@ func DeallocateAddress(allocation *loadbalancing_v1alpha1.IPAllocation) {
 	for _, addrAllocation := range allocation.Spec.Allocations {
 		if addrAllocation.NetworkInterface != "" {
 			netInterface := addrAllocation.NetworkInterface
-			operatorspeaker.RemoveAddressFromNode(addrAllocation.NodeName, netInterface, addrAllocation.Address)
+			_ = operatorspeaker.RemoveAddressFromNode(addrAllocation.NodeName, netInterface, addrAllocation.Address)
 		}
 
 		pool := SearchPoolByName(addrAllocation.Pool)

@@ -94,9 +94,8 @@ func (s *PlenusLbServer) Cleanup(ctx context.Context, cleanupInfo *plenuslbV1Alp
 		return nil, status.Error(codes.Internal, err.Error())
 	}
 
-	m := fmt.Sprintf("Cleanup completed")
 	return &plenuslbV1Alpha1.Result{
 		Done:    true,
-		Message: m,
+		Message: "Cleanup completed",
 	}, nil
 }

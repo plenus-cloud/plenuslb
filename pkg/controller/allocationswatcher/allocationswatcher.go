@@ -49,7 +49,7 @@ var (
 )
 
 // ErrAllocationNotFound returned when the requested allocation does not exists
-var ErrAllocationNotFound = errors.New("Allocation not found")
+var ErrAllocationNotFound = errors.New("allocation not found")
 
 // Init performs all the sturtup tasks, such as the subscription on the events channel
 func Init() {
@@ -124,16 +124,13 @@ func allocationCreated(allocation *loadbalancing_v1alpha1.IPAllocation) {
 	case "":
 		break
 	case loadbalancing_v1alpha1.AllocationStatusSuccess:
-		go processAllocationStatusSuccess(allocation)
-		break
+		go func() { _ = processAllocationStatusSuccess(allocation) }()
 	case loadbalancing_v1alpha1.AllocationStatusPending:
-		go processAllocationStatusPending(allocation)
-		break
+		go func() { _ = processAllocationStatusPending(allocation) }()
 	case loadbalancing_v1alpha1.AllocationStatusNodeError:
-		go processAllocationNodeError(allocation)
-		break
+		go func() { _ = processAllocationNodeError(allocation) }()
 	case loadbalancing_v1alpha1.AllocationStatusError:
-		go processAllocationStatusError(allocation)
+		go func() { _ = processAllocationStatusError(allocation) }()
 	case loadbalancing_v1alpha1.AllocationStatusFailed:
 		klog.Warningf("Allocation %s/%s is now in failed state. A human action is requied", allocation.GetNamespace(), allocation.GetName())
 	default:
@@ -146,16 +143,13 @@ func allocationsChanged(allocation *loadbalancing_v1alpha1.IPAllocation) {
 	case "":
 		break
 	case loadbalancing_v1alpha1.AllocationStatusSuccess:
-		go processAllocationStatusSuccess(allocation)
-		break
+		go func() { _ = processAllocationStatusSuccess(allocation) }()
 	case loadbalancing_v1alpha1.AllocationStatusPending:
-		go processAllocationStatusPending(allocation)
-		break
+		go func() { _ = processAllocationStatusPending(allocation) }()
 	case loadbalancing_v1alpha1.AllocationStatusNodeError:
-		go processAllocationNodeError(allocation)
-		break
+		go func() { _ = processAllocationNodeError(allocation) }()
 	case loadbalancing_v1alpha1.AllocationStatusError:
-		go processAllocationStatusError(allocation)
+		go func() { _ = processAllocationStatusError(allocation) }()
 	case loadbalancing_v1alpha1.AllocationStatusFailed:
 		klog.Warningf("Allocation %s/%s is now in failed state. A human action is requied", allocation.GetNamespace(), allocation.GetName())
 	default:
@@ -274,16 +268,20 @@ func allocationDeleted(allocation *loadbalancing_v1alpha1.IPAllocation) {
 			persistentips.DeallocateAllocation(allocation)
 		} else if allocationType == loadbalancing_v1alpha1.EphemeralIP {
 			ephemeralips.DeallocateAddress(allocation)
-			servicesupdater.RemoveServiceIngressIPs(allocation.GetNamespace(), allocation.GetName())
+			err := servicesupdater.RemoveServiceIngressIPs(allocation.GetNamespace(), allocation.GetName())
+			if err != nil {
+				klog.Error(err)
+				return
+			}
 		} else {
-			err := fmt.Errorf("Unknown allocation type %s", allocationType)
+			err := fmt.Errorf("unknown allocation type %s", allocationType)
 			klog.Error(err)
 		}
 
 		service, err := servicewatcher.FindService(allocation.GetNamespace(), allocation.GetName())
 		if err == nil && utils.ServiceIsLoadBalancer(service) {
 			klog.Infof("Service of deleted allocation %s/%s still exists and is a LoadBalancer, recreating allocation", allocation.GetNamespace(), allocation.GetName())
-			allocationreconciler.CreateAllocationForService(service)
+			_, _ = allocationreconciler.CreateAllocationForService(service)
 		}
 	}()
 }
@@ -305,10 +303,8 @@ func operatorNodeLost(clusterNodeName string) {
 		for _, addrAlloc := range allocation.Spec.Allocations {
 			if addrAlloc.NodeName == clusterNodeName {
 				klog.Infof("Allocation %s/%s is on lost node %s, changing allocation status", allocation.GetNamespace(), allocation.GetName(), clusterNodeName)
-				if result, err := ipallocations.SetAllocationStatusNodeError(allocation, fmt.Errorf("Cluster node %s lost", clusterNodeName)); err != nil {
+				if _, err := ipallocations.SetAllocationStatusNodeError(allocation, fmt.Errorf("cluster node %s lost", clusterNodeName)); err != nil {
 					klog.Error(err)
-				} else {
-					allocation = result
 				}
 				break
 			}
@@ -343,7 +339,7 @@ func newOperatorNode(clusterNodeName string) {
 		}
 	}
 
-	operatorspeaker.DoCleanup(clusterNodeName, toKeep)
+	_ = operatorspeaker.DoCleanup(clusterNodeName, toKeep)
 }
 
 func deallocateDeletedAddresses(addresses []string) {
@@ -487,20 +483,6 @@ func processAllocationStatusPending(allocationRO *loadbalancing_v1alpha1.IPAlloc
 
 // FindAllocationByName returns the allocation given the allocation name and namespace
 func FindAllocationByName(namespace, name string) (*loadbalancing_v1alpha1.IPAllocation, error) {
-	/* 	if AllocationController != nil && AllocationController.HasSynced() {
-		for _, obj := range allocationStore.List() {
-			allocation, ok := obj.(*loadbalancing_v1alpha1.IPAllocation)
-			if !ok {
-				klog.Errorf("unexpected type %s", reflect.TypeOf(obj))
-				continue
-			}
-			if allocation.GetNamespace() == namespace && allocation.GetName() == name {
-				return allocation, nil
-			}
-		}
-		return nil, ErrAllocationNotFound
-	} */
-
 	allocation, err := clients.GetPlenuslbClient().LoadbalancingV1alpha1().IPAllocations(namespace).Get(name, metav1.GetOptions{})
 	if err != nil && apierrors.IsNotFound(err) {
 		klog.Warningf("Allocation %s/%s not found", namespace, name)

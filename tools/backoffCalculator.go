@@ -203,7 +203,7 @@ func main() {
 		Cap:      5 * time.Minute,
 	}
 
-	OnErrorForever(ErrorBackoff, func(err error) bool { return true }, func() error { return errors.New("err") })
+	_ = OnErrorForever(ErrorBackoff, func(err error) bool { return true }, func() error { return errors.New("err") })
 
 	fmt.Printf("Total max retry time is %s\n", secondsToHuman(floatToInt(maxRetrytime)))
 }

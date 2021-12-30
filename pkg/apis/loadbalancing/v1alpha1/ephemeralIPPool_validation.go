@@ -20,18 +20,17 @@ import (
 
 // GetEphemeralIPPoolValidationSchemaV1 returns the validation schema con EphemeralIPPool CRD
 func GetEphemeralIPPoolValidationSchemaV1() *apiextv1.CustomResourceValidation {
-	var minArrayLength int64
-	minArrayLength = 1
+	minArrayLength := int64(1)
 	return &apiextv1.CustomResourceValidation{
 		OpenAPIV3Schema: &apiextv1.JSONSchemaProps{
 			Required: []string{"spec"},
 			Type:     "object",
 			Properties: map[string]apiextv1.JSONSchemaProps{
-				"spec": apiextv1.JSONSchemaProps{
+				"spec": {
 					Type:     "object",
 					Required: []string{"cloudIntegration"},
 					Properties: map[string]apiextv1.JSONSchemaProps{
-						"allowedNamespaces": apiextv1.JSONSchemaProps{
+						"allowedNamespaces": {
 							AdditionalProperties: &apiextv1.JSONSchemaPropsOrBool{
 								Allows: false,
 							},
@@ -46,14 +45,14 @@ func GetEphemeralIPPoolValidationSchemaV1() *apiextv1.CustomResourceValidation {
 							},
 							MinLength: &minArrayLength,
 						},
-						"cloudIntegration": apiextv1.JSONSchemaProps{
+						"cloudIntegration": {
 							Type: "object",
 							Properties: map[string]apiextv1.JSONSchemaProps{
-								"hetzner": apiextv1.JSONSchemaProps{
+								"hetzner": {
 									Type:     "object",
 									Required: []string{"token"},
 									Properties: map[string]apiextv1.JSONSchemaProps{
-										"token": apiextv1.JSONSchemaProps{
+										"token": {
 											AdditionalProperties: &apiextv1.JSONSchemaPropsOrBool{
 												Allows: false,
 											},
@@ -63,25 +62,25 @@ func GetEphemeralIPPoolValidationSchemaV1() *apiextv1.CustomResourceValidation {
 								},
 							},
 							OneOf: []apiextv1.JSONSchemaProps{
-								apiextv1.JSONSchemaProps{
+								{
 									Required: []string{"hetzner"},
 								},
 							},
 						},
-						"options": apiextv1.JSONSchemaProps{
+						"options": {
 							Type: "object",
 							Properties: map[string]apiextv1.JSONSchemaProps{
-								"hostNetworkInterface": apiextv1.JSONSchemaProps{
+								"hostNetworkInterface": {
 									Type:     "object",
 									Required: []string{"addAddressesToInterface", "interfaceName"},
 									Properties: map[string]apiextv1.JSONSchemaProps{
-										"addAddressesToInterface": apiextv1.JSONSchemaProps{
+										"addAddressesToInterface": {
 											AdditionalProperties: &apiextv1.JSONSchemaPropsOrBool{
 												Allows: false,
 											},
 											Type: "boolean",
 										},
-										"interfaceName": apiextv1.JSONSchemaProps{
+										"interfaceName": {
 											AdditionalProperties: &apiextv1.JSONSchemaPropsOrBool{
 												Allows: false,
 											},

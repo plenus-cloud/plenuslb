@@ -24,5 +24,5 @@ func Init() {
 	createIPPoolsWatcher()
 
 	warmupIPPoolsCacheOrDie()
-	warmupIPAvailabilityOrDie()
+	_ = warmupIPAvailabilityOrDie()
 }

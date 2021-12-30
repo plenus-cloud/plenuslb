@@ -43,7 +43,7 @@ func warmupIPPoolsCacheOrDie() {
 	}
 	klog.Infof("Warming-up ippools cache, %d ippools are on the cluster now", len(list.Items))
 	for _, ippool := range list.Items {
-		ippoolsStore.Add(ippool)
+		_ = ippoolsStore.Add(ippool)
 	}
 }
 
@@ -125,7 +125,7 @@ func addPool(pool *loadbalancing_v1alpha1.PersistentIPPool) {
 	addOrReplaceAvailabilityPool(pool.DeepCopy())
 	// check if pool had addAddressesToInterface options, if yes ensure is daemonset is presence
 	if utils.PersistentPoolHasHostNetworkOption(pool) && !operator.IsDeployed() {
-		operator.DeployOrDie()
+		_ = operator.DeployOrDie()
 	}
 }
 

@@ -62,7 +62,7 @@ func EnsureIPAllocation(allocation *loadbalancing_v1alpha1.IPAllocation) error {
 		if err != nil {
 			if err == utils.ErrNoOperatorNodeAvailable || err == utils.ErrFailedToDialWithOperator {
 				klog.Errorf("Failed to allocate address %s of pool %s due the following reason %v. Will be retried", address, poolName, err)
-				if _, err := ipallocations.SetAllocationStatusNodeError(allocation, fmt.Errorf("Cluster node %s unreachable", addrAllocation.NodeName)); err != nil {
+				if _, err := ipallocations.SetAllocationStatusNodeError(allocation, fmt.Errorf("cluster node %s unreachable", addrAllocation.NodeName)); err != nil {
 					klog.Error(err)
 				}
 			} else {
@@ -80,11 +80,9 @@ func EnsureIPAllocation(allocation *loadbalancing_v1alpha1.IPAllocation) error {
 		return err
 	}
 
-	if allocation.Spec.Type != loadbalancing_v1alpha1.PersistentIP {
-		if err := updateServiceIngressWithIps(allocation.GetNamespace(), allocation.GetName(), ips); err != nil {
-			klog.Error(err)
-			return err
-		}
+	if err := updateServiceIngressWithIps(allocation.GetNamespace(), allocation.GetName(), ips); err != nil {
+		klog.Error(err)
+		return err
 	}
 
 	return nil
@@ -110,7 +108,7 @@ func allocateAddress(allocationType loadbalancing_v1alpha1.IPType, addressAlloca
 		return nil
 	}
 
-	err := fmt.Errorf("Unknown allocation type %s", allocationType)
+	err := fmt.Errorf("unknown allocation type %s", allocationType)
 	klog.Error(err)
 	return err
 

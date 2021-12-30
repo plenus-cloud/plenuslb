@@ -26,18 +26,10 @@ import (
 	fakeclietset "k8s.io/client-go/kubernetes/fake"
 	"k8s.io/client-go/tools/cache"
 	loadbalancing_v1alpha1 "plenus.io/plenuslb/pkg/apis/loadbalancing/v1alpha1"
-	plenuslbclientset "plenus.io/plenuslb/pkg/client/clientset/versioned"
-	plenuslbclientsetfake "plenus.io/plenuslb/pkg/client/clientset/versioned/fake"
 	"plenus.io/plenuslb/pkg/clouds/fake"
 	"plenus.io/plenuslb/pkg/controller/clients"
 	"plenus.io/plenuslb/pkg/controller/operator"
 )
-
-func mockGetPlenuslbClient(objects ...runtime.Object) {
-	clients.GetPlenuslbClient = func() plenuslbclientset.Interface {
-		return plenuslbclientsetfake.NewSimpleClientset(objects...)
-	}
-}
 
 func mockGetK8sClient(objects ...runtime.Object) {
 	clients.GetK8sClient = func() clientset.Interface {
@@ -52,7 +44,7 @@ func mockEphemeralPoolCache(pools ...*loadbalancing_v1alpha1.EphemeralIPPool) {
 	newStore := cache.NewStore(testStoreKeyFunc)
 
 	for _, pool := range pools {
-		newStore.Add(pool)
+		_ = newStore.Add(pool)
 	}
 	poolStoreList = func() []interface{} {
 		return newStore.List()
@@ -66,7 +58,7 @@ func mockCoreClientCache(pods ...*v1.Pod) {
 	newStore := cache.NewStore(testStoreKeyFunc)
 
 	for _, pod := range pods {
-		newStore.Add(pod)
+		_ = newStore.Add(pod)
 	}
 	operator.GetStoreList = func() []interface{} {
 		return newStore.List()

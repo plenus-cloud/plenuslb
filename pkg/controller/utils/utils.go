@@ -42,6 +42,39 @@ func ServiceHasExternalIPs(service *v1.Service) (bool, []string) {
 	return false, []string{}
 }
 
+func IsEphemeralAllocation(service *v1.Service) bool {
+	hasExternalsIPs, _ := ServiceHasExternalIPs(service)
+	hasLoadBalancerIps, _ := ServiceHasLoadBalancerIP(service)
+
+	return !hasExternalsIPs && !hasLoadBalancerIps
+}
+
+func IsPersistentAllocation(service *v1.Service) (bool, []string) {
+	hasExternalsIPs, externalIps := ServiceHasExternalIPs(service)
+	hasLoadBalancerIps, loadBalancerIps := ServiceHasLoadBalancerIP(service)
+
+	// loadBalancer ip has higher priority over externalIps
+	var ips []string
+	if hasLoadBalancerIps {
+		ips = loadBalancerIps
+	} else {
+		ips = externalIps
+	}
+
+	if hasExternalsIPs && hasLoadBalancerIps {
+		klog.Warningf("service %s/%s has both loadBalancerIp and externaIps, using loadBalancerIp", service.GetNamespace(), service.GetName())
+	}
+
+	return hasExternalsIPs || hasLoadBalancerIps, ips
+}
+
+func ServiceHasLoadBalancerIP(service *v1.Service) (bool, []string) {
+	if service.Spec.LoadBalancerIP != "" {
+		return true, []string{service.Spec.LoadBalancerIP}
+	}
+	return false, []string{}
+}
+
 // ContainsString tells whether a contains x.
 func ContainsString(a []string, x string) bool {
 	for _, n := range a {

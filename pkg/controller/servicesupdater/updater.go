@@ -20,6 +20,7 @@ import (
 	"k8s.io/klog"
 
 	"plenus.io/plenuslb/pkg/controller/clients"
+	"plenus.io/plenuslb/pkg/controller/utils"
 )
 
 // UpdateServiceIngressWithIps adds the ip address to the ingresses list of a service
@@ -32,6 +33,13 @@ func UpdateServiceIngressWithIps(serviceNamespace, serviceName string, ips []str
 	if err != nil {
 		klog.Error(err)
 		return err
+	}
+
+	hasExternalIps, _ := utils.ServiceHasExternalIPs(service)
+
+	if hasExternalIps {
+		klog.Infof("Service %s/%s has external ips %v, status should not be updated", serviceNamespace, serviceName, service.Spec.ExternalIPs)
+		return nil
 	}
 
 	s := service.DeepCopy()

@@ -46,9 +46,9 @@ func persistentPoolRemoved(pool *loadbalancing_v1alpha1.PersistentIPPool) {
 	if utils.PersistentPoolHasHostNetworkOption(pool) {
 		atListOnePoolHasHostNetworkOption := atLeastOnePoolHasHostNetworkOption()
 		if atListOnePoolHasHostNetworkOption && !operator.IsDeployed() {
-			operator.DeployOrDie()
+			_ = operator.DeployOrDie()
 		} else if !atListOnePoolHasHostNetworkOption && operator.IsDeployed() {
-			operator.Delete()
+			_ = operator.Delete()
 		}
 	}
 }
@@ -62,9 +62,9 @@ func ephemeralPoolRemoved(pool *loadbalancing_v1alpha1.EphemeralIPPool) {
 	if utils.EphemeralPoolHasHostNetworkOption(pool) {
 		atListOnePoolHasHostNetworkOption := atLeastOnePoolHasHostNetworkOption()
 		if atListOnePoolHasHostNetworkOption && !operator.IsDeployed() {
-			operator.DeployOrDie()
+			_ = operator.DeployOrDie()
 		} else if !atListOnePoolHasHostNetworkOption && operator.IsDeployed() {
-			operator.Delete()
+			_ = operator.Delete()
 		}
 	}
 }
@@ -75,9 +75,9 @@ func ephemeralPoolModified(pool *loadbalancing_v1alpha1.EphemeralIPPool) {
 
 	atListOnePoolHasHostNetworkOption := atLeastOnePoolHasHostNetworkOption()
 	if atListOnePoolHasHostNetworkOption && !operator.IsDeployed() {
-		operator.DeployOrDie()
+		_ = operator.DeployOrDie()
 	} else if !atListOnePoolHasHostNetworkOption && operator.IsDeployed() {
-		operator.Delete()
+		_ = operator.Delete()
 	}
 
 }
@@ -88,9 +88,9 @@ func persistentPoolModified(pool *loadbalancing_v1alpha1.PersistentIPPool) {
 
 	atListOnePoolHasHostNetworkOption := atLeastOnePoolHasHostNetworkOption()
 	if atListOnePoolHasHostNetworkOption && !operator.IsDeployed() {
-		operator.DeployOrDie()
+		_ = operator.DeployOrDie()
 	} else if !atListOnePoolHasHostNetworkOption && operator.IsDeployed() {
-		operator.Delete()
+		_ = operator.Delete()
 	}
 }
 

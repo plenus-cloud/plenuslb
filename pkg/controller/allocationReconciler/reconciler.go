@@ -56,7 +56,9 @@ func ReconcileAllocation(service *v1.Service, allocation *loadbalancing_v1alpha1
 //			-> deallocate and release removed ips
 //		-> if no: why? if is persistent it should
 func reconcilePersistentAllocation(service *v1.Service, allocation *loadbalancing_v1alpha1.IPAllocation) (*loadbalancing_v1alpha1.IPAllocation, error) {
-	if hasExternalsIPs, ips := utils.ServiceHasExternalIPs(service); hasExternalsIPs {
+	isPersistentAllocation, ips := utils.IsPersistentAllocation(service)
+
+	if isPersistentAllocation {
 		patched, removedAllocations, allocErr, err := persistentips.CheckAndPatchAllocation(service.GetNamespace(), service.GetName(), ips, allocation)
 		if err != nil {
 			return nil, err
@@ -69,28 +71,33 @@ func reconcilePersistentAllocation(service *v1.Service, allocation *loadbalancin
 			for _, alloc := range removedAllocations {
 				klog.Infof("Removing ip %s because is no longer used by service %s/%s", alloc.Address, service.GetNamespace(), service.GetName())
 				persistentips.ReleaseIP(alloc.Pool, service.GetNamespace(), alloc.Address)
-				persistentips.DeallocateAddress(alloc)
+
+				if err := persistentips.DeallocateAddress(alloc); err != nil {
+					return nil, err
+				}
 			}
 		}
 
 		if allocErr != nil {
-			klog.Errorf("Error patching allocation for service %s/%s: %v", service.GetNamespace(), service.GetName(), allocErr)
+			klog.Errorf("error patching allocation for service %s/%s: %v", service.GetNamespace(), service.GetName(), allocErr)
 			return patched, allocErr
 		}
 		return patched, nil
 
 	}
-	err := fmt.Errorf("Service %s/%s is expected as Persistent but hasn't external ips", service.GetNamespace(), service.GetName())
+	err := fmt.Errorf("service %s/%s is expected as Persistent but hasn't external ips", service.GetNamespace(), service.GetName())
 	klog.Error(err)
 	return nil, err
 }
 
 //	-> has externals ips?
-//		-> if yes:
+//		-> if no:
 //			-> check if the allocation has a node and, if necessary, the network interface
 //		-> if yes: why? if is ephemeral it shouldn't
 func reconcileEphemeralAllocation(service *v1.Service, allocation *loadbalancing_v1alpha1.IPAllocation) (*loadbalancing_v1alpha1.IPAllocation, error) {
-	if hasExternalsIPs, _ := utils.ServiceHasExternalIPs(service); !hasExternalsIPs {
+	isEphemeralAllocation := utils.IsEphemeralAllocation(service)
+
+	if isEphemeralAllocation {
 		if (len(service.Status.LoadBalancer.Ingress) == 1 && len(allocation.Spec.Allocations) == 1 && service.Status.LoadBalancer.Ingress[0].IP == allocation.Spec.Allocations[0].Address) || len(service.Status.LoadBalancer.Ingress) == 0 {
 			patched, allocErr := ephemeralips.CheckAndPatchAllocation(allocation)
 			return patched, allocErr
@@ -105,7 +112,7 @@ func reconcileEphemeralAllocation(service *v1.Service, allocation *loadbalancing
 		return nil, nil
 
 	}
-	err := fmt.Errorf("Service %s/%s is expected as Ephemeral but has external ips", service.GetNamespace(), service.GetName())
+	err := fmt.Errorf("service %s/%s is expected as Ephemeral but has external ips", service.GetNamespace(), service.GetName())
 	klog.Error(err)
 	return nil, err
 }
@@ -125,7 +132,8 @@ func changeAllocationType(service *v1.Service, allocation *loadbalancing_v1alpha
 
 // CreateAllocationForService creates a new IPAllocation according to the given service
 func CreateAllocationForService(service *v1.Service) (*loadbalancing_v1alpha1.IPAllocation, error) {
-	if hasExternalIPS, ips := utils.ServiceHasExternalIPs(service); hasExternalIPS && len(ips) > 0 {
+	isPersistentallocation, ips := utils.IsPersistentAllocation(service)
+	if isPersistentallocation && len(ips) > 0 {
 		allocation, err := persistentips.EnsurePersistentAllocation(service.GetNamespace(), service.GetName(), ips)
 		if err != nil {
 			klog.Error(err)
@@ -133,6 +141,7 @@ func CreateAllocationForService(service *v1.Service) (*loadbalancing_v1alpha1.IP
 		}
 		return allocation, nil
 	}
+
 	allocation, err := ephemeralips.EnsureEphemeralAllocation(service.GetNamespace(), service.GetName())
 	if err != nil {
 		klog.Error(err)
@@ -143,7 +152,7 @@ func CreateAllocationForService(service *v1.Service) (*loadbalancing_v1alpha1.IP
 }
 
 func serviceIsNoLongerALoadBalancer(service *v1.Service, allocation *loadbalancing_v1alpha1.IPAllocation) error {
-	// if now is ehemeral we neet to remove ingress addresses
+	// if now is ehemeral we need to remove ingress addresses
 	currentAllocationType := allocation.Spec.Type
 	if currentAllocationType == loadbalancing_v1alpha1.EphemeralIP {
 		err := servicesupdater.RemoveServiceIngressIPs(service.GetNamespace(), service.GetName())
@@ -161,7 +170,8 @@ func serviceIsNoLongerALoadBalancer(service *v1.Service, allocation *loadbalanci
 }
 
 func expectedAllocationType(service *v1.Service) loadbalancing_v1alpha1.IPType {
-	if hasExternalIPS, ips := utils.ServiceHasExternalIPs(service); hasExternalIPS && len(ips) > 0 {
+	isPersistentallocation, ips := utils.IsPersistentAllocation(service)
+	if isPersistentallocation && len(ips) > 0 {
 		return loadbalancing_v1alpha1.PersistentIP
 	}
 	return loadbalancing_v1alpha1.EphemeralIP

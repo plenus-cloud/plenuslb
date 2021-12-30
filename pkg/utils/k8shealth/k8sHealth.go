@@ -36,19 +36,19 @@ func HealthHandlers() {
 	server.HandleFunc("/health", func(w http.ResponseWriter, r *http.Request) {
 		if IsHealth {
 			w.WriteHeader(200)
-			w.Write([]byte("ok"))
+			_, _ = w.Write([]byte("ok"))
 		} else {
 			w.WriteHeader(500)
-			w.Write([]byte("dead"))
+			_, _ = w.Write([]byte("dead"))
 		}
 	})
 	server.HandleFunc("/ready", func(w http.ResponseWriter, r *http.Request) {
 		if IsReady {
 			w.WriteHeader(200)
-			w.Write([]byte("ok"))
+			_, _ = w.Write([]byte("ok"))
 		} else {
 			w.WriteHeader(423)
-			w.Write([]byte("not-ready"))
+			_, _ = w.Write([]byte("not-ready"))
 		}
 	})
 

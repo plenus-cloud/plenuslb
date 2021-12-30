@@ -39,7 +39,7 @@ var (
 )
 
 // ErrServiceNotFound returned when the requested service deas not exists
-var ErrServiceNotFound = errors.New("Service not found")
+var ErrServiceNotFound = errors.New("service not found")
 
 // Init initializes performs all the startup tasks for the services whatcher
 func Init() {
@@ -98,7 +98,9 @@ func WatchServices(stop chan struct{}) {
 func serviceCreated(service *v1.Service) {
 	if utils.ServiceIsLoadBalancer(service) {
 		klog.Infof("Added new LoadBalancer service %s/%s", service.GetNamespace(), service.GetName())
-		go allocationreconciler.CreateAllocationForService(service)
+		go func() {
+			_, _ = allocationreconciler.CreateAllocationForService(service)
+		}()
 	}
 }
 
@@ -121,13 +123,17 @@ func serviceChanged(service *v1.Service) {
 		return
 	}
 	if allocation == nil && utils.ServiceIsLoadBalancer(service) {
-		go allocationreconciler.CreateAllocationForService(service)
+		go func() {
+			_, _ = allocationreconciler.CreateAllocationForService(service)
+		}()
 	} else if allocation != nil {
 		if err := allocationslock.AcquireAllocationLock(allocation); err != nil {
 			return
 		}
 		defer allocationslock.RemoveFromLock(allocation)
-		go allocationreconciler.ReconcileAllocation(service, allocation)
+		go func() {
+			_, _ = allocationreconciler.ReconcileAllocation(service, allocation)
+		}()
 	}
 }
 

@@ -22,8 +22,6 @@ import (
 
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/runtime"
-	"k8s.io/client-go/tools/cache"
-	fakecontroller "k8s.io/client-go/tools/cache/testing"
 	loadbalancing_v1alpha1 "plenus.io/plenuslb/pkg/apis/loadbalancing/v1alpha1"
 	plenuslbclientset "plenus.io/plenuslb/pkg/client/clientset/versioned"
 	plenuslbclientsetfake "plenus.io/plenuslb/pkg/client/clientset/versioned/fake"
@@ -40,18 +38,6 @@ func mockGetPlenuslbClient(objects ...runtime.Object) {
 
 func restoreGetPlenuslbClient() {
 	clients.GetPlenuslbClient = originalGetPlenuslbClient
-}
-
-var originalGetControllerSourceWatchList = getControllerSourceWatchList
-
-func mockGetControllerSourceWatchList() {
-	getControllerSourceWatchList = func() cache.ListerWatcher {
-		return fakecontroller.NewFakeControllerSource()
-	}
-}
-
-func restoreGetControllerSourceWatchList() {
-	getControllerSourceWatchList = originalGetControllerSourceWatchList
 }
 
 func TestFindAllocationByNameApi(t *testing.T) {
