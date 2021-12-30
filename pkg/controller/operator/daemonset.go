@@ -216,7 +216,8 @@ func warmupControllerNodesCacheOrDie(daemonset *appsv1.DaemonSet) error {
 			klog.Infof("Operator node %s is running on cluster node %s", pod.GetName(), pod.Spec.NodeName)
 			if err := operatorNodesStore.Add(pod); err != nil {
 				klog.Error(err)
-				return err
+				// TODO: return err
+				// return err
 			}
 		} else {
 			klog.Warningf("Operator node %s is not ready, is %s for the following reason: %s", pod.GetName(), pod.Status.Phase, pod.Status.Reason)

@@ -101,7 +101,7 @@ func CheckAndPatchAllocation(allocationRO *loadbalancing_v1alpha1.IPAllocation) 
 			klog.Info(allocationErr)
 			klog.Infof("Getting new ephemeral address for allocation %s/%s", allocationRO.GetNamespace(), allocationRO.GetName())
 			clusterName := utils.GetClusterName()
-			ip, err := getAndAssignAddressOnCloud(pool, fmt.Sprintf("plenuslb-ephemeral-%s-%s-%s", clusterName, allocationRO.GetNamespace(), allocationRO.GetNamespace()), addressAllocation.NodeName)
+			ip, err := getAndAssignAddressOnCloud(pool, fmt.Sprintf("plenuslb-ephemeral-%s-%s-%s", clusterName, allocationRO.GetNamespace(), allocationRO.GetName()), addressAllocation.NodeName)
 			if err != nil {
 				klog.Error(err)
 				return allocationRO, err
