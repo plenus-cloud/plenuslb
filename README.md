@@ -11,7 +11,7 @@ The current version support two scenarios:
 - pure bare metal deployment
 - integration with Hetzner cloud
 
-PlenusLB has been originally developed to be used on the [Plenus cloud platform](https://plenus.cloud) and in bare metal environments.
+PlenusLB has been originally developed by [Cognitio](https://www.cognitio.it) to be used on the Plenus cloud platform and in bare metal environments.
 
 ## How it works
 
@@ -115,7 +115,7 @@ At the moment it is not possible to create an IP address with an ephemeral IP po
 
 ### Ephemeral IP
 
-By creating a service with type: LoadBalancer and not specifying any externalIPs PlenusLB will provision an ephemeral IP:
+By creating a service with type: LoadBalancer and not specifying any externalIPs or loadBalancerIP PlenusLB will provision an ephemeral IP:
 the IP will be assigned to the service as long as the service exists, but there is no reservation; if the service is deleted the IP will be
 released on the cloud provider. Ephemeral IP addresses cannot be used in the bare metal scenario.
 
@@ -142,7 +142,7 @@ spec:
 
 ```options.hostNetworkInterface.addAddressesToInterface``` usually is set to true, if set to false PlenusLB would not perform the assignment of the IP address to any interface on the ingress node; in that case the IP address would have to be assigned to the node manually or by another component.
 
-To have an ephemeral IP assigned create a service with type: LoadBalancer and no externalIPs
+To have an ephemeral IP assigned create a service with type: LoadBalancer and no externalIPs or loadBalancerIP
 
 ```yaml
 apiVersion: v1
@@ -215,7 +215,10 @@ For the bare metal case omit the cloudIntegration section.
 
 Every persistent IP can be bound to a single service.
 
-To have PlenusLB assign the persistent IP to a service it is sufficient to specify it as an externalIPs in a LoadBalancer type service.
+To have PlenusLB assign the persistent IP to a service it is sufficient to specify it as an externalIPs or loadBalancerIP in a LoadBalancer type service.
+
+With externalIPs:
+
 
 ```yaml
 apiVersion: v1
@@ -226,6 +229,23 @@ spec:
   type: LoadBalancer
   externalIPs:
   - 1.2.3.4
+  ports:
+  - port: 80
+    targetPort: 8080
+  selector:
+    app: hello-kubernetes
+```
+
+With loadBalancerIP:
+
+```yaml
+apiVersion: v1
+kind: Service
+metadata:
+  name: hello-kubernetes-persistent
+spec:
+  type: LoadBalancer
+  loadBalancerIP: 1.2.3.4
   ports:
   - port: 80
     targetPort: 8080
